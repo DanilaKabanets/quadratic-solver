@@ -1,4 +1,6 @@
 build
 .vs
 .idea
+Debug
+Release
 
