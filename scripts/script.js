@@ -7,7 +7,7 @@ const graphContainer = document.getElementById('graph-container');
 const stepsDiv = document.getElementById('steps');
 const historyList = document.getElementById('history-list');
 
-// Элементы табов
+// Элементы вкладок
 const calculatorTab = document.getElementById('calculator-tab');
 const historyTab = document.getElementById('history-tab');
 const tutorialTab = document.getElementById('tutorial-tab');
@@ -29,9 +29,9 @@ const bError = document.getElementById('b-error');
 const cError = document.getElementById('c-error');
 
 
-// Переключение табов
+// Переключение вкладок
 function switchTab(tab, section) {
-    // Удаляем активный класс у всех табов и секций
+    // Удаляем активный класс у всех вкладок и секций
     [calculatorTab, historyTab, tutorialTab].forEach(t => t.classList.remove('active'));
     [calculatorSection, historySection, tutorialSection].forEach(s => s.classList.remove('active'));
 
