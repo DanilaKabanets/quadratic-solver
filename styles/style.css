@@ -1,0 +1,382 @@
+:root {
+    /* Цветовая палитра */
+    --color-primary: #3498db;
+    --color-primary-dark: #2980b9;
+    --color-secondary: #95a5a6;
+    --color-secondary-dark: #7f8c8d;
+    --color-text: #333;
+    --color-heading: #2c3e50;
+    --color-error: #e74c3c;
+    --color-bg: #f5f5f5;
+    --color-white: #fff;
+    --color-light-gray: #f9f9f9;
+    --color-border: #ddd;
+
+    /* Отступы */
+    --spacing-xs: 5px;
+    --spacing-sm: 10px;
+    --spacing-md: 15px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+
+    /* Радиусы */
+    --radius-sm: 5px;
+    --radius-md: 10px;
+
+    /* Тени */
+    --shadow-default: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Arial", sans-serif;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    padding: var(--spacing-lg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-default);
+}
+
+/* Типографика */
+h1,
+h2,
+h3,
+h4 {
+    color: var(--color-heading);
+    margin-bottom: var(--spacing-md);
+}
+
+h1 {
+    text-align: center;
+}
+
+.equation-form {
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: var(--spacing-xl);
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+/* Структурные элементы */
+header {
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Табы */
+.tabs {
+    display: flex;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.tab {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: none;
+    border: none;
+    font-size: 1em;
+    cursor: pointer;
+    color: var(--color-secondary-dark);
+    transition: all 0.3s ease;
+}
+
+.tab.active {
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+    margin-bottom: -2px;
+}
+
+.tab:hover {
+    background-color: var(--color-primary-dark);
+    color: var(--color-white);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Форма */
+#quadratic-form {
+    margin-bottom: var(--spacing-xl);
+}
+
+.input-group {
+    margin-bottom: var(--spacing-md);
+}
+
+label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+input:invalid {
+    border-color: var(--color-error);
+}
+
+.error-message {
+    color: var(--color-error);
+    font-size: 0.85em;
+    margin-top: var(--spacing-xs);
+    min-height: 18px;
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* Кнопки */
+button {
+    padding: 12px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    flex: 1;
+}
+
+button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+#reset-btn {
+    background-color: var(--color-secondary);
+}
+
+#reset-btn:hover {
+    background-color: var(--color-secondary-dark);
+}
+
+/* Результаты */
+#result {
+    background-color: var(--color-light-gray);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-sm);
+    border-left: 5px solid var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+#discriminant,
+#roots {
+    margin-bottom: var(--spacing-md);
+    line-height: 1.5;
+}
+
+.action-btn {
+    margin-top: var(--spacing-md);
+    padding: 8px var(--spacing-md);
+    width: auto;
+    display: inline-block;
+    margin-right: var(--spacing-sm);
+    font-size: 0.9em;
+}
+
+.hidden {
+    display: none;
+}
+
+.error {
+    color: var(--color-error);
+    font-weight: bold;
+}
+
+/* Стилизованные блоки */
+.card-block {
+    padding: var(--spacing-md);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.left-border {
+    border-left: 3px solid var(--color-primary);
+    padding-left: var(--spacing-sm);
+}
+
+/* Пошаговое решение */
+.step-solution {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+#steps {
+    line-height: 1.6;
+}
+
+.step {
+    margin-bottom: var(--spacing-sm);
+    padding-left: var(--spacing-sm);
+    border-left: 3px solid var(--color-primary);
+}
+
+/* График */
+#graph-container {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-sm);
+}
+
+.canvas-container {
+    width: 100%;
+    height: 300px;
+}
+
+/* История */
+#history-list {
+    margin-bottom: var(--spacing-lg);
+}
+
+.history-item {
+    padding: var(--spacing-md);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-sm);
+    border-left: 3px solid var(--color-primary);
+    position: relative;
+}
+
+.history-item .equation {
+    font-weight: bold;
+    margin-bottom: var(--spacing-xs);
+}
+
+.history-item .result {
+    color: var(--color-heading);
+}
+
+.history-item .timestamp {
+    font-size: 0.8em;
+    color: var(--color-secondary-dark);
+    margin-top: var(--spacing-xs);
+}
+
+.empty-history {
+    text-align: center;
+    color: var(--color-secondary-dark);
+    padding: var(--spacing-lg);
+}
+
+.delete-history-item {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    background: none;
+    border: none;
+    color: var(--color-error);
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0;
+    width: auto;
+}
+
+/* Теоретическая часть */
+.tutorial-content {
+    line-height: 1.6;
+}
+
+.formula {
+    padding: 8px;
+    background-color: #f0f8ff;
+    border-left: 3px solid var(--color-primary);
+    margin: var(--spacing-sm) 0;
+    font-style: italic;
+}
+
+.examples {
+    margin-top: var(--spacing-lg);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.example {
+    padding: var(--spacing-md);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-primary);
+}
+
+footer {
+    margin-top: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-secondary-dark);
+    font-size: 0.9em;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    body {
+        padding: var(--spacing-sm);
+    }
+
+    .container {
+        padding: var(--spacing-lg);
+        border-radius: 0;
+        max-width: 100%;
+    }
+
+    .tabs,
+    .button-group {
+        flex-direction: column;
+    }
+
+    .examples {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .equation-form {
+        font-size: 1.2em;
+    }
+
+    .tab {
+        padding: 8px var(--spacing-md);
+    }
+}

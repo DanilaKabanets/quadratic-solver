@@ -2,16 +2,159 @@
 <html lang="ru">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Решение квадратных уравнений</title>
-    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="./styles/style.css" />
+    <!-- Подключаем библиотеку для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+    <div class="container">
+        <header>
+            <h1>Решение квадратных уравнений</h1>
+            <p class="equation-form">ax² + bx + c = 0</p>
+            <nav class="tabs">
+                <button id="calculator-tab" class="tab active">Калькулятор</button>
+                <button id="history-tab" class="tab">История</button>
+                <button id="tutorial-tab" class="tab">Теория</button>
+            </nav>
+        </header>
+
+        <main>
+            <section id="calculator-section" class="tab-content active">
+                <form id="quadratic-form" novalidate>
+                    <!-- Шаблон для групп ввода -->
+                    <template id="input-group-template">
+                        <div class="input-group">
+                            <label for=""></label>
+                            <input type="number" required step="any" />
+                            <div class="error-message"></div>
+                        </div>
+                    </template>
+
+                    <!-- Группы ввода для коэффициентов -->
+                    <div class="input-group">
+                        <label for="a">Коэффициент a:</label>
+                        <input type="number" id="a" required step="any" aria-describedby="a-error" />
+                        <div class="error-message" id="a-error"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="b">Коэффициент b:</label>
+                        <input type="number" id="b" required step="any" aria-describedby="b-error" />
+                        <div class="error-message" id="b-error"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="c">Коэффициент c:</label>
+                        <input type="number" id="c" required step="any" aria-describedby="c-error" />
+                        <div class="error-message" id="c-error"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="solve-btn">Решить</button>
+                        <button type="reset" id="reset-btn">Сбросить</button>
+                    </div>
+                </form>
+
+                <div id="result" class="hidden card-block">
+                    <h2>Решение:</h2>
+                    <div id="discriminant"></div>
+                    <div id="roots"></div>
+                    <div class="button-group">
+                        <button id="copy-btn" class="action-btn">
+                            Копировать результат
+                        </button>
+                        <button id="save-btn" class="action-btn">
+                            Сохранить в историю
+                        </button>
+                    </div>
+
+                    <div id="step-solution" class="step-solution">
+                        <h3>Пошаговое решение:</h3>
+                        <div id="steps"></div>
+                    </div>
+                </div>
+
+                <div id="graph-container" class="hidden card-block">
+                    <h3>График функции y = ax² + bx + c</h3>
+                    <div class="canvas-container">
+                        <canvas id="function-graph"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history-section" class="tab-content">
+                <div id="history-list">
+                    <p class="empty-history">История пуста</p>
+                </div>
+                <button id="clear-history" class="action-btn">
+                    Очистить историю
+                </button>
+            </section>
+
+            <section id="tutorial-section" class="tab-content">
+                <h2>Теория решения квадратных уравнений</h2>
+                <div class="tutorial-content">
+                    <h3>Что такое квадратное уравнение?</h3>
+                    <p>
+                        Квадратное уравнение — это уравнение вида ax² + bx + c = 0, где a,
+                        b, c — некоторые числа, причём a ≠ 0.
+                    </p>
+
+                    <h3>Алгоритм решения</h3>
+                    <ol>
+                        <li>Вычислить дискриминант D = b² - 4ac</li>
+                        <li>
+                            В зависимости от значения D:
+                            <ul>
+                                <li>
+                                    Если D > 0, то уравнение имеет два различных действительных
+                                    корня:
+                                    <div class="formula">x₁ = (-b + √D) / (2a)</div>
+                                    <div class="formula">x₂ = (-b - √D) / (2a)</div>
+                                </li>
+                                <li>
+                                    Если D = 0, то уравнение имеет один действительный корень
+                                    (двукратный):
+                                    <div class="formula">x = -b / (2a)</div>
+                                </li>
+                                <li>
+                                    Если D < 0, то уравнение не имеет действительных корней, но имеет два комплексных
+                                        корня: <div class="formula">x₁ = -b/(2a) + i·√|D|/(2a)
+                </div>
+                <div class="formula">x₂ = -b/(2a) - i·√|D|/(2a)</div>
+                </li>
+                </ul>
+                </li>
+                </ol>
+
+                <h3>Примеры</h3>
+                <div class="examples">
+                    <div class="example">
+                        <h4>Пример 1: x² - 5x + 6 = 0</h4>
+                        <p>Здесь a = 1, b = -5, c = 6</p>
+                        <p>D = (-5)² - 4·1·6 = 25 - 24 = 1</p>
+                        <p>x₁ = (5 + 1) / 2 = 3</p>
+                        <p>x₂ = (5 - 1) / 2 = 2</p>
+                        <p>Ответ: x₁ = 3, x₂ = 2</p>
+                    </div>
+                    <div class="example">
+                        <h4>Пример 2: x² + 4x + 4 = 0</h4>
+                        <p>Здесь a = 1, b = 4, c = 4</p>
+                        <p>D = 4² - 4·1·4 = 16 - 16 = 0</p>
+                        <p>x = -4 / (2·1) = -2</p>
+                        <p>Ответ: x = -2 (двукратный корень)</p>
+                    </div>
+                </div>
+    </div>
+    </section>
+    </main>
+    </div>
 
     <script src="./scripts/script.js"></script>
-
 </body>
 
 </html>
