@@ -29,7 +29,7 @@ const bError = document.getElementById('b-error');
 const cError = document.getElementById('c-error');
 
 
-// Переключение табов
+// Переключение вкладок
 function switchTab(tab, section) {
     // Удаляем активный класс у всех табов и секций
     [calculatorTab, historyTab, tutorialTab].forEach(t => t.classList.remove('active'));
