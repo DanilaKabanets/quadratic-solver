@@ -47,3 +47,89 @@ historyTab.addEventListener('click', () => {
     renderHistory();
 });
 tutorialTab.addEventListener('click', () => switchTab(tutorialTab, tutorialSection));
+
+// Функция для валидации поля
+function validateInput(input, errorElement, customValidation) {
+    // Очищаем сообщение об ошибке
+    errorElement.textContent = '';
+
+    // Проверяем заполненность поля
+    if (!input.value.trim()) {
+        errorElement.textContent = 'Это поле не может быть пустым';
+        return false;
+    }
+
+    // Проверяем, что введено число
+    if (isNaN(parseFloat(input.value))) {
+        errorElement.textContent = 'Введите корректное число';
+        return false;
+    }
+
+    // Применяем пользовательскую валидацию, если указана
+    if (customValidation && !customValidation(input.value)) {
+        return false;
+    }
+
+    return true;
+}
+
+// Обработчики событий для валидации в реальном времени
+aInput.addEventListener('input', function () {
+    validateInput(aInput, aError, function (value) {
+        if (parseFloat(value) === 0) {
+            aError.textContent = 'Коэффициент a не может быть равен нулю';
+            return false;
+        }
+        return true;
+    });
+});
+
+bInput.addEventListener('input', function () {
+    validateInput(bInput, bError);
+});
+
+cInput.addEventListener('input', function () {
+    validateInput(cInput, cError);
+});
+
+// Обработчик сброса формы
+form.addEventListener('reset', function () {
+    // Очищаем ошибки
+    [aError, bError, cError].forEach(el => el.textContent = '');
+
+    // Скрываем результаты и график
+    resultDiv.classList.add('hidden');
+    graphContainer.classList.add('hidden');
+
+    // Если есть график, уничтожаем его
+    if (functionGraph) {
+        functionGraph.destroy();
+        functionGraph = null;
+    }
+});
+
+// Обработчик отправки формы
+form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // Скрываем результаты предыдущих вычислений
+    resultDiv.classList.add('hidden');
+    graphContainer.classList.add('hidden');
+
+    // Проверяем валидность всех полей
+    const isAValid = validateInput(aInput, aError, function (value) {
+        if (parseFloat(value) === 0) {
+            aError.textContent = 'Коэффициент a не может быть равен нулю';
+            return false;
+        }
+        return true;
+    });
+
+    const isBValid = validateInput(bInput, bError);
+    const isCValid = validateInput(cInput, cError);
+
+    // Если есть ошибки валидации, прерываем выполнение
+    if (!isAValid || !isBValid || !isCValid) {
+        return;
+    }
+});
