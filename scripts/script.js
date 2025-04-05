@@ -7,7 +7,7 @@ const graphContainer = document.getElementById('graph-container');
 const stepsDiv = document.getElementById('steps');
 const historyList = document.getElementById('history-list');
 
-// Элементы табов
+// Элементы ВКЛАДОК
 const calculatorTab = document.getElementById('calculator-tab');
 const historyTab = document.getElementById('history-tab');
 const tutorialTab = document.getElementById('tutorial-tab');
