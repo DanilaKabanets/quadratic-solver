@@ -1,6 +1,11 @@
-import { getFormData, showResults } from './ui.js';
-
-function solveQuadraticEquation(a, b, c) {
+/**
+ * Решает квадратное уравнение вида ax² + bx + c = 0
+ * @param {number} a - Коэффициент при x²
+ * @param {number} b - Коэффициент при x
+ * @param {number} c - Свободный член
+ * @returns {Object} Результат решения уравнения
+ */
+export function solveQuadraticEquation(a, b, c) {
     let roots = [];
     let steps = [];
 
@@ -13,7 +18,7 @@ function solveQuadraticEquation(a, b, c) {
                 return {
                     discriminant: null,
                     roots: ['∞'],
-                    steps: steps.join('<br>')
+                    steps: steps
                 };
             } else {
                 steps.push('1. Уравнение имеет вид: 0 = ' + c);
@@ -21,7 +26,7 @@ function solveQuadraticEquation(a, b, c) {
                 return {
                     discriminant: null,
                     roots: [],
-                    steps: steps.join('<br>')
+                    steps: steps
                 };
             }
         } else {
@@ -31,7 +36,7 @@ function solveQuadraticEquation(a, b, c) {
             return {
                 discriminant: null,
                 roots: [x],
-                steps: steps.join('<br>')
+                steps: steps
             };
         }
     }
@@ -59,32 +64,6 @@ function solveQuadraticEquation(a, b, c) {
     return {
         discriminant,
         roots,
-        steps: steps.join('<br>')
+        steps: steps
     };
-}
-
-export function initSolver() {
-    const form = document.getElementById('quadratic-form');
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const { a, b, c } = getFormData();
-        const result = solveQuadraticEquation(a, b, c);
-
-        let discriminantText = result.discriminant !== null
-            ? `D = ${result.discriminant}`
-            : 'Линейное уравнение';
-
-        let rootsText;
-        if (result.roots.length === 0) {
-            rootsText = 'Действительных корней нет';
-        } else if (result.roots[0] === '∞') {
-            rootsText = 'Бесконечное множество решений';
-        } else {
-            rootsText = `Корни: ${result.roots.join(', ')}`;
-        }
-
-        showResults(discriminantText, rootsText, result.steps);
-    });
 }

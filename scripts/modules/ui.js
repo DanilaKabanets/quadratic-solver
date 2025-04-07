@@ -1,3 +1,6 @@
+import { solveQuadraticEquation } from './solver.js';
+import { formatQuadraticResult } from './formatter.js';
+
 // Элементы интерфейса
 const form = document.getElementById('quadratic-form');
 const resultDiv = document.getElementById('result');
@@ -64,6 +67,34 @@ function validateInput(input, errorElement, customValidation) {
     return true;
 }
 
+/**
+ * Получает данные из формы
+ * @returns {Object} Коэффициенты уравнения
+ */
+export function getFormData() {
+    const a = parseFloat(document.getElementById('a').value);
+    const b = parseFloat(document.getElementById('b').value);
+    const c = parseFloat(document.getElementById('c').value);
+    return { a, b, c };
+}
+
+/**
+ * Отображает результаты решения уравнения
+ * @param {string} discriminantText - Текст с дискриминантом
+ * @param {string} rootsText - Текст с корнями
+ * @param {Array<string>} steps - Массив шагов решения
+ */
+export function showResults(discriminantText, rootsText, steps) {
+    document.getElementById('discriminant').textContent = discriminantText;
+    document.getElementById('roots').textContent = rootsText;
+    document.getElementById('steps').innerHTML = steps.join('<br>');
+}
+
+export function showGraph(graph) {
+    graphContainer.classList.remove('hidden');
+    // TODO: Добавить логику отображения графика
+}
+
 export function initUI() {
     // Обработчики клика по табам
     calculatorTab.addEventListener('click', () => switchTab(calculatorTab, calculatorSection));
@@ -101,24 +132,18 @@ export function initUI() {
             functionGraph = null;
         }
     });
-}
 
-export function getFormData() {
-    return {
-        a: parseFloat(aInput.value),
-        b: parseFloat(bInput.value),
-        c: parseFloat(cInput.value)
-    };
-}
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-export function showResults(discriminant, roots, steps) {
-    discriminantDiv.textContent = discriminant;
-    rootsDiv.textContent = roots;
-    stepsDiv.innerHTML = steps;
-    resultDiv.classList.remove('hidden');
-}
+        const { a, b, c } = getFormData();
+        const result = solveQuadraticEquation(a, b, c);
+        const formattedResult = formatQuadraticResult(result);
 
-export function showGraph(graph) {
-    graphContainer.classList.remove('hidden');
-    // TODO: Добавить логику отображения графика
+        showResults(
+            formattedResult.discriminantText,
+            formattedResult.rootsText,
+            formattedResult.steps
+        );
+    });
 }
