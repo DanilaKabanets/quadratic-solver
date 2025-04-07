@@ -1,10 +1,16 @@
 /**
- * Форматирует результат решения квадратного уравнения для отображения
- * @param {Object} result - Результат решения уравнения
- * @returns {Object} Отформатированные данные для отображения
+ * Модуль форматирования результатов решения квадратного уравнения
  */
-export function formatQuadraticResult(result) {
-    const discriminantText = result.discriminant !== null
+
+/**
+ * Форматирует и отображает результаты решения квадратного уравнения
+ * @param {Object} result - Результат решения уравнения
+ * @param {number|null} result.discriminant - Значение дискриминанта
+ * @param {Array} result.roots - Массив корней уравнения
+ * @param {string} result.steps - Шаги решения в HTML формате
+ */
+export function formatResults(result) {
+    let discriminantText = result.discriminant !== null
         ? `D = ${result.discriminant}`
         : 'Линейное уравнение';
 
@@ -17,9 +23,16 @@ export function formatQuadraticResult(result) {
         rootsText = `Корни: ${result.roots.join(', ')}`;
     }
 
-    return {
-        discriminantText,
-        rootsText,
-        steps: result.steps
-    };
+    // Отображаем результаты на странице
+    const resultDiv = document.getElementById('result');
+    const discriminantDiv = document.getElementById('discriminant');
+    const rootsDiv = document.getElementById('roots');
+    const stepsDiv = document.getElementById('steps');
+
+    if (resultDiv && discriminantDiv && rootsDiv && stepsDiv) {
+        discriminantDiv.textContent = discriminantText;
+        rootsDiv.textContent = rootsText;
+        stepsDiv.innerHTML = result.steps;
+        resultDiv.classList.remove('hidden');
+    }
 } 
