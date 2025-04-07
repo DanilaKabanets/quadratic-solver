@@ -1,11 +1,6 @@
-/**
- * Решает квадратное уравнение вида ax² + bx + c = 0
- * @param {number} a - Коэффициент при x²
- * @param {number} b - Коэффициент при x
- * @param {number} c - Свободный член
- * @returns {Object} Результат решения уравнения
- */
-export function solveQuadraticEquation(a, b, c) {
+import { formatResults } from './formatter.js';
+
+function solveQuadraticEquation(a, b, c) {
     let roots = [];
     let steps = [];
 
@@ -18,7 +13,7 @@ export function solveQuadraticEquation(a, b, c) {
                 return {
                     discriminant: null,
                     roots: ['∞'],
-                    steps: steps
+                    steps: steps.join('<br>')
                 };
             } else {
                 steps.push('1. Уравнение имеет вид: 0 = ' + c);
@@ -26,7 +21,7 @@ export function solveQuadraticEquation(a, b, c) {
                 return {
                     discriminant: null,
                     roots: [],
-                    steps: steps
+                    steps: steps.join('<br>')
                 };
             }
         } else {
@@ -36,7 +31,7 @@ export function solveQuadraticEquation(a, b, c) {
             return {
                 discriminant: null,
                 roots: [x],
-                steps: steps
+                steps: steps.join('<br>')
             };
         }
     }
@@ -64,6 +59,26 @@ export function solveQuadraticEquation(a, b, c) {
     return {
         discriminant,
         roots,
-        steps: steps
+        steps: steps.join('<br>')
     };
 }
+
+export function initSolver() {
+    const form = document.getElementById('quadratic-form');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Получаем данные формы
+        const a = parseFloat(document.getElementById('a').value);
+        const b = parseFloat(document.getElementById('b').value);
+        const c = parseFloat(document.getElementById('c').value);
+
+        const result = solveQuadraticEquation(a, b, c);
+
+        // Используем форматтер для отображения результатов
+        formatResults(result);
+    });
+}
+
+export { solveQuadraticEquation };
