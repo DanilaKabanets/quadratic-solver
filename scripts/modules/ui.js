@@ -28,7 +28,6 @@ const aError = document.getElementById('a-error');
 const bError = document.getElementById('b-error');
 const cError = document.getElementById('c-error');
 
-
 // Переключение вкладок
 function switchTab(tab, section) {
     // Удаляем активный класс у всех вкладок и секций
@@ -39,14 +38,6 @@ function switchTab(tab, section) {
     tab.classList.add('active');
     section.classList.add('active');
 }
-
-// Обработчики клика по табам
-calculatorTab.addEventListener('click', () => switchTab(calculatorTab, calculatorSection));
-historyTab.addEventListener('click', () => {
-    switchTab(historyTab, historySection);
-    renderHistory();
-});
-tutorialTab.addEventListener('click', () => switchTab(tutorialTab, tutorialSection));
 
 // Функция для валидации поля
 function validateInput(input, errorElement, customValidation) {
@@ -73,63 +64,61 @@ function validateInput(input, errorElement, customValidation) {
     return true;
 }
 
-// Обработчики событий для валидации в реальном времени
-aInput.addEventListener('input', function () {
-    validateInput(aInput, aError, function (value) {
-        if (parseFloat(value) === 0) {
-            aError.textContent = 'Коэффициент a не может быть равен нулю';
-            return false;
-        }
-        return true;
+export function initUI() {
+    // Обработчики клика по табам
+    calculatorTab.addEventListener('click', () => switchTab(calculatorTab, calculatorSection));
+    historyTab.addEventListener('click', () => {
+        switchTab(historyTab, historySection);
+        renderHistory();
     });
-});
+    tutorialTab.addEventListener('click', () => switchTab(tutorialTab, tutorialSection));
 
-bInput.addEventListener('input', function () {
-    validateInput(bInput, bError);
-});
-
-cInput.addEventListener('input', function () {
-    validateInput(cInput, cError);
-});
-
-// Обработчик сброса формы
-form.addEventListener('reset', function () {
-    // Очищаем ошибки
-    [aError, bError, cError].forEach(el => el.textContent = '');
-
-    // Скрываем результаты и график
-    resultDiv.classList.add('hidden');
-    graphContainer.classList.add('hidden');
-
-    // Если есть график, уничтожаем его
-    if (functionGraph) {
-        functionGraph.destroy();
-        functionGraph = null;
-    }
-});
-
-// Обработчик отправки формы
-form.addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    // Скрываем результаты предыдущих вычислений
-    resultDiv.classList.add('hidden');
-    graphContainer.classList.add('hidden');
-
-    // Проверяем валидность всех полей
-    const isAValid = validateInput(aInput, aError, function (value) {
-        if (parseFloat(value) === 0) {
-            aError.textContent = 'Коэффициент a не может быть равен нулю';
-            return false;
-        }
-        return true;
+    // Обработчики событий для валидации в реальном времени
+    aInput.addEventListener('input', function () {
+        validateInput(aInput, aError);
     });
 
-    const isBValid = validateInput(bInput, bError);
-    const isCValid = validateInput(cInput, cError);
+    bInput.addEventListener('input', function () {
+        validateInput(bInput, bError);
+    });
 
-    // Если есть ошибки валидации, прерываем выполнение
-    if (!isAValid || !isBValid || !isCValid) {
-        return;
-    }
-});
+    cInput.addEventListener('input', function () {
+        validateInput(cInput, cError);
+    });
+
+    // Обработчик сброса формы
+    form.addEventListener('reset', function () {
+        // Очищаем ошибки
+        [aError, bError, cError].forEach(el => el.textContent = '');
+
+        // Скрываем результаты и график
+        resultDiv.classList.add('hidden');
+        graphContainer.classList.add('hidden');
+
+        // Если есть график, уничтожаем его
+        if (functionGraph) {
+            functionGraph.destroy();
+            functionGraph = null;
+        }
+    });
+}
+
+export function getFormData() {
+    return {
+        a: parseFloat(aInput.value),
+        b: parseFloat(bInput.value),
+        c: parseFloat(cInput.value)
+    };
+}
+
+export function showResults(discriminant, roots, steps) {
+    discriminantDiv.textContent = discriminant;
+    rootsDiv.textContent = roots;
+    stepsDiv.innerHTML = steps;
+    resultDiv.classList.remove('hidden');
+}
+
+export function showGraph(graph) {
+    graphContainer.classList.remove('hidden');
+    // TODO: Добавить логику отображения графика
+}
