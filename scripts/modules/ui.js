@@ -1,3 +1,5 @@
+import { renderHistory } from './history.js';
+
 // Элементы интерфейса
 const form = document.getElementById('quadratic-form');
 const resultDiv = document.getElementById('result');
