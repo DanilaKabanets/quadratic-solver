@@ -35,4 +35,42 @@ export function formatResults(result) {
         stepsDiv.innerHTML = result.steps;
         resultDiv.classList.remove('hidden');
     }
+}
+
+/**
+ * Форматирует уравнение в виде строки
+ * @param {number} a - Коэффициент a
+ * @param {number} b - Коэффициент b
+ * @param {number} c - Коэффициент c
+ * @returns {string} Отформатированное уравнение
+ */
+export function formatEquation(a, b, c) {
+    let equation = '';
+
+    if (a === 0) {
+        if (b === 0) {
+            return `${c} = 0`;
+        }
+        equation = b === 1 ? 'x' : b === -1 ? '-x' : `${b}x`;
+    } else {
+        equation = a === 1 ? 'x²' : a === -1 ? '-x²' : `${a}x²`;
+
+        if (b !== 0) {
+            if (b > 0) {
+                equation += ` + ${b === 1 ? '' : b}x`;
+            } else {
+                equation += ` - ${Math.abs(b) === 1 ? '' : Math.abs(b)}x`;
+            }
+        }
+    }
+
+    if (c !== 0) {
+        if (c > 0) {
+            equation += ` + ${c}`;
+        } else {
+            equation += ` - ${Math.abs(c)}`;
+        }
+    }
+
+    return equation + ' = 0';
 } 
