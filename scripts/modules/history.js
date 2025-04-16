@@ -1,4 +1,5 @@
 import { formatEquation } from './formatter.js';
+import { drawGraph } from './graph.js';
 
 // DOM элементы
 let historyList;
@@ -13,6 +14,12 @@ export function initHistory() {
     historyList = document.getElementById('history-list');
     clearHistoryBtn = document.getElementById('clear-history');
     saveBtn = document.getElementById('save-btn');
+
+    // Проверяем, существуют ли элементы DOM
+    if (!historyList || !clearHistoryBtn || !saveBtn) {
+        console.error('Не найдены необходимые элементы DOM для модуля истории');
+        return;
+    }
 
     // Установка обработчиков событий
     saveBtn.addEventListener('click', saveCurrentSolution);
@@ -109,8 +116,14 @@ export function renderHistory() {
                 // Вызываем клик на вкладку калькулятора
                 calculatorTab.click();
 
-                // Отправляем форму
-                document.getElementById('quadratic-form').dispatchEvent(new Event('submit'));
+                // Отправляем форму для решения уравнения
+                const form = document.getElementById('quadratic-form');
+                if (form) {
+                    form.dispatchEvent(new Event('submit'));
+                } else {
+                    // Если форма не найдена, построим график непосредственно здесь
+                    drawGraph(item.a, item.b, item.c);
+                }
             }
         });
 

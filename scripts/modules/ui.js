@@ -1,4 +1,5 @@
 import { renderHistory } from './history.js';
+import { drawGraph } from './graph.js';
 
 // Элементы интерфейса
 const form = document.getElementById('quadratic-form');
@@ -120,7 +121,7 @@ export function showResults(discriminant, roots, steps) {
     resultDiv.classList.remove('hidden');
 }
 
-export function showGraph(graph) {
-    graphContainer.classList.remove('hidden');
-    // TODO: Добавить логику отображения графика
+export function showGraph(a, b, c) {
+    // Делегируем отображение графика модулю graph
+    drawGraph(a, b, c);
 }
