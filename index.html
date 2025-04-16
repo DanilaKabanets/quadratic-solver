@@ -8,9 +8,22 @@
     <link rel="stylesheet" href="./styles/style.css" />
     <!-- Подключаем библиотеку для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Подключаем иконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
 <body>
+    <!-- Переключатель темы -->
+    <div class="theme-switcher">
+        <span class="theme-icon">
+            <i class="fas fa-sun"></i>
+        </span>
+        <label class="theme-toggle">
+            <input type="checkbox" id="theme-toggle-checkbox">
+            <span class="slider"></span>
+        </label>
+    </div>
+
     <div class="container">
         <header>
             <h1>Решение квадратных уравнений</h1>

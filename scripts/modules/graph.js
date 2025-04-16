@@ -85,6 +85,13 @@ export function drawGraph(a, b, c) {
         return;
     }
 
+    // Определяем цвета для графика в зависимости от текущей темы
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDarkMode ? '#6272a4' : '#a9a9a9';
+    const textColor = isDarkMode ? '#f8f8f2' : '#333';
+    const borderColor = isDarkMode ? '#f8f8f2' : '#333';
+    const dataColor = isDarkMode ? '#bd93f9' : '#3498db';
+
     // Создаем график
     functionGraph = new Chart(ctx, {
         type: 'line',
@@ -92,7 +99,7 @@ export function drawGraph(a, b, c) {
             datasets: [{
                 label: `y = ${formatEquation(a, b, c).replace(' = 0', '')}`,
                 data: points,
-                borderColor: '#3498db',
+                borderColor: dataColor,
                 borderWidth: 2,
                 pointRadius: 0,
                 tension: 0.1
@@ -106,16 +113,16 @@ export function drawGraph(a, b, c) {
                     type: 'linear',
                     position: 'center',
                     grid: {
-                        color: '#a9a9a9'
+                        color: gridColor
                     },
                     ticks: {
-                        color: '#333',
+                        color: textColor,
                         font: {
                             weight: 'bold'
                         }
                     },
                     border: {
-                        color: '#333',
+                        color: borderColor,
                         width: 2
                     }
                 },
@@ -123,16 +130,16 @@ export function drawGraph(a, b, c) {
                     type: 'linear',
                     position: 'center',
                     grid: {
-                        color: '#a9a9a9'
+                        color: gridColor
                     },
                     ticks: {
-                        color: '#333',
+                        color: textColor,
                         font: {
                             weight: 'bold'
                         }
                     },
                     border: {
-                        color: '#333',
+                        color: borderColor,
                         width: 2
                     }
                 }
