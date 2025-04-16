@@ -1,5 +1,6 @@
 import { formatResults } from './formatter.js';
 import { setCurrentSolution } from './history.js';
+import { drawGraph } from './graph.js';
 
 function solveQuadraticEquation(a, b, c) {
     let roots = [];
@@ -79,6 +80,9 @@ export function initSolver() {
 
         // Используем форматтер для отображения результатов
         formatResults(result);
+
+        // Строим график функции
+        drawGraph(a, b, c);
 
         // Сохраняем текущее решение для возможности добавления в историю
         setCurrentSolution(a, b, c, result);
