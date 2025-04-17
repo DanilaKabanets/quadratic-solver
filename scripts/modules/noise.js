@@ -1,101 +1,19 @@
-// Генератор шума Перлина
-const Perlin = (() => {
-    const p = new Array(512);
-
-    // Инициализация массива перестановок
-    function init() {
-        const permutation = Array.from({ length: 256 }, (_, i) => i);
-
-        for (let i = 255; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [permutation[i], permutation[j]] = [permutation[j], permutation[i]];
-        }
-
-        for (let i = 0; i < 256; i++) {
-            p[i] = p[i + 256] = permutation[i];
-        }
-    }
-
-    // Вспомогательные функции для интерполяции и градиентов
-    function fade(t) {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    function lerp(t, a, b) {
-        return a + t * (b - a);
-    }
-
-    function grad(hash, x, y, z) {
-        const h = hash & 15;
-        const u = h < 8 ? x : y;
-        const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
-        return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
-    }
-
-    // Базовая шумовая функция
-    function noise(x, y, z) {
-        const X = Math.floor(x) & 255;
-        const Y = Math.floor(y) & 255;
-        const Z = Math.floor(z) & 255;
-
-        x -= Math.floor(x);
-        y -= Math.floor(y);
-        z -= Math.floor(z);
-
-        const u = fade(x);
-        const v = fade(y);
-        const w = fade(z);
-
-        const A = p[X] + Y, AA = p[A] + Z, AB = p[A + 1] + Z;
-        const B = p[X + 1] + Y, BA = p[B] + Z, BB = p[B + 1] + Z;
-
-        return (lerp(w,
-            lerp(v, lerp(u, grad(p[AA], x, y, z), grad(p[BA], x - 1, y, z)),
-                lerp(u, grad(p[AB], x, y - 1, z), grad(p[BB], x - 1, y - 1, z))),
-            lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1), grad(p[BA + 1], x - 1, y, z - 1)),
-                lerp(u, grad(p[AB + 1], x, y - 1, z - 1), grad(p[BB + 1], x - 1, y - 1, z - 1)))) + 1) / 2;
-    }
-
-    // Фрактальный шум (сумма октав)
-    function fbm(x, y, z, octaves, lacunarity, persistence) {
-        let total = 0;
-        let frequency = 1.0;
-        let amplitude = 1.0;
-        let maxValue = 0;
-
-        for (let i = 0; i < octaves; i++) {
-            total += noise(x * frequency, y * frequency, z) * amplitude;
-            maxValue += amplitude;
-            frequency *= lacunarity;
-            amplitude *= persistence;
-        }
-
-        return total / maxValue;
-    }
-
-    // Инициализация при первом запуске
-    init();
-
-    // Публичный API
-    return { noise, fbm };
-})();
-
 /**
- * Инициализация и управление анимированным шумовым фоном
+ * Шум Перлина через WebGL для фонового эффекта облаков
  */
 export function initNoise() {
     // Конфигурация
     const config = {
-        renderScale: 0.15,    // Масштаб рендеринга (% от полного разрешения)
-        noiseScale: 0.0035,    // Масштаб узора шума
-        noiseSpeed: 0.025,    // Скорость анимации
-        octaves: 2,           // Количество октав шума
-        lacunarity: 2.0,      // Множитель частоты для октав
+        renderScale: 0.1,     // Масштаб рендеринга
+        noiseScale: 0.1,   // Масштаб узора шума
+        noiseSpeed: 0.02,    // Скорость анимации
+        octaves: 3,           // Количество октав шума
+        lacunarity: 1.0,      // Множитель частоты для октав
         persistence: 0.5,     // Множитель амплитуды для октав
-        fps: 24               // Целевая частота кадров
+        fps: 60               // Целевая частота кадров
     };
 
-    // Создание canvas
+    // Создаем canvas если его нет
     let canvas = document.getElementById('noise-canvas');
     if (!canvas) {
         canvas = document.createElement('canvas');
@@ -104,115 +22,268 @@ export function initNoise() {
         document.body.insertBefore(canvas, document.body.firstChild);
     }
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    // Инициализация WebGL
+    const gl = canvas.getContext('webgl', {
+        alpha: false,
+        premultipliedAlpha: false,
+        antialias: false,
+        depth: false,         // Не используем буфер глубины
+        stencil: false,       // Не используем буфер трафарета
+        preserveDrawingBuffer: false
+    });
 
-    // Переменные состояния
-    let frame = 0;
-    let lastFrameTime = 0;
-    let w, h, scaledWidth, scaledHeight;
-    let noiseLowR = 180, noiseLowG = 210, noiseLowB = 230;
-    let noiseHighR = 255, noiseHighG = 255, noiseHighB = 255;
-    let colorsNeedUpdate = true;
-    let imageData;
-
-    // Настройка размера canvas
-    function resize() {
-        w = window.innerWidth;
-        h = window.innerHeight;
-
-        scaledWidth = Math.ceil(w * config.renderScale);
-        scaledHeight = Math.ceil(h * config.renderScale);
-
-        canvas.width = scaledWidth;
-        canvas.height = scaledHeight;
-
-        // Создаем новый ImageData при изменении размера
-        imageData = ctx.createImageData(scaledWidth, scaledHeight);
+    if (!gl) {
+        console.error('WebGL не поддерживается в этом браузере');
+        return;
     }
 
-    // Обновление цветов из CSS переменных
+    // Шейдеры
+    const vertexShaderSource = `
+        attribute vec2 a_position;
+        void main() {
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+    `;
+
+    const fragmentShaderSource = `
+        precision mediump float;
+        
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        uniform vec3 u_lowColor;
+        uniform vec3 u_highColor;
+        uniform float u_noiseScale;
+        uniform int u_octaves;
+        uniform float u_lacunarity;
+        uniform float u_persistence;
+        
+        // Хэширование
+        vec3 hash33(vec3 p) {
+            p = fract(p * vec3(443.8975, 397.2973, 491.1871));
+            p += dot(p, p.yxz + 19.19);
+            return fract((p.xxy + p.yxx) * p.zyx);
+        }
+        
+        // Интерполяция
+        float fade(float t) {
+            return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+        }
+        
+        // Градиент
+        float grad(float hash, vec3 p) {
+            vec3 basis = hash33(vec3(hash));
+            basis = basis * 2.0 - 1.0;
+            return dot(basis, p);
+        }
+        
+        // Шум Перлина
+        float noise(vec3 p) {
+            vec3 i = floor(p);
+            vec3 f = fract(p);
+            
+            vec3 u = vec3(fade(f.x), fade(f.y), fade(f.z));
+            
+            float a = grad(hash33(i).x, f);
+            float b = grad(hash33(i + vec3(1, 0, 0)).x, f - vec3(1, 0, 0));
+            float c = grad(hash33(i + vec3(0, 1, 0)).x, f - vec3(0, 1, 0));
+            float d = grad(hash33(i + vec3(1, 1, 0)).x, f - vec3(1, 1, 0));
+            float e = grad(hash33(i + vec3(0, 0, 1)).x, f - vec3(0, 0, 1));
+            float f1 = grad(hash33(i + vec3(1, 0, 1)).x, f - vec3(1, 0, 1));
+            float g = grad(hash33(i + vec3(0, 1, 1)).x, f - vec3(0, 1, 1));
+            float h = grad(hash33(i + vec3(1, 1, 1)).x, f - vec3(1, 1, 1));
+            
+            float v1 = mix(a, b, u.x);
+            float v2 = mix(c, d, u.x);
+            float v3 = mix(e, f1, u.x);
+            float v4 = mix(g, h, u.x);
+            
+            float v5 = mix(v1, v2, u.y);
+            float v6 = mix(v3, v4, u.y);
+            
+            return mix(v5, v6, u.z) * 0.5 + 0.5;
+        }
+        
+        // Шум с октавами
+        float fbm(vec3 p, int octaves, float lacunarity, float persistence) {
+            float total = 0.0;
+            float frequency = 1.0;
+            float amplitude = 1.0;
+            float maxValue = 0.0;
+            
+            for (int i = 0; i < 10; i++) {
+                if (i >= octaves) break;
+                
+                total += noise(p * frequency) * amplitude;
+                maxValue += amplitude;
+                
+                frequency *= lacunarity;
+                amplitude *= persistence;
+            }
+            
+            return total / maxValue;
+        }
+        
+        void main() {
+            vec2 uv = gl_FragCoord.xy / u_resolution;
+            vec3 p = vec3(uv * u_noiseScale, u_time);
+            
+            float n = fbm(p, u_octaves, u_lacunarity, u_persistence);
+            n = pow(n, 1.5);
+            
+            vec3 color = mix(u_lowColor, u_highColor, n);
+            gl_FragColor = vec4(color, 1.0);
+        }
+    `;
+
+    // Компиляция и линковка шейдеров
+    const program = (() => {
+        // Создание шейдера
+        function createShader(type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Ошибка компиляции шейдера:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        // Создание программы
+        const vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+        if (!vertexShader || !fragmentShader) return null;
+
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.error('Ошибка линковки программы:', gl.getProgramInfoLog(program));
+            gl.deleteProgram(program);
+            return null;
+        }
+
+        return program;
+    })();
+
+    if (!program) {
+        console.error('Не удалось создать шейдерную программу');
+        return;
+    }
+
+    // Получение ссылок на атрибуты и униформы
+    const locations = {
+        position: gl.getAttribLocation(program, 'a_position'),
+        resolution: gl.getUniformLocation(program, 'u_resolution'),
+        time: gl.getUniformLocation(program, 'u_time'),
+        lowColor: gl.getUniformLocation(program, 'u_lowColor'),
+        highColor: gl.getUniformLocation(program, 'u_highColor'),
+        noiseScale: gl.getUniformLocation(program, 'u_noiseScale'),
+        octaves: gl.getUniformLocation(program, 'u_octaves'),
+        lacunarity: gl.getUniformLocation(program, 'u_lacunarity'),
+        persistence: gl.getUniformLocation(program, 'u_persistence')
+    };
+
+    // Создание буфера вершин
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    // Прямоугольник на весь экран (2 треугольника)
+    const positions = [
+        -1, -1,
+        1, -1,
+        -1, 1,
+        -1, 1,
+        1, -1,
+        1, 1
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    // Состояние анимации
+    let frame = 0;
+    let lastFrameTime = 0;
+    let lowColor = [180 / 255, 210 / 255, 230 / 255];
+    let highColor = [1.0, 1.0, 1.0];
+    let colorsNeedUpdate = true;
+
+    // Обработка изменения размера
+    function resize() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        canvas.width = Math.ceil(width * config.renderScale);
+        canvas.height = Math.ceil(height * config.renderScale);
+
+        gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
+    // Обновление цветов
     function updateColors() {
         try {
             const styles = getComputedStyle(document.body);
 
             // Чтение CSS переменных
-            const getLowColor = (component) => parseInt(styles.getPropertyValue(`--noise-low-${component}`).trim(), 10);
-            const getHighColor = (component) => parseInt(styles.getPropertyValue(`--noise-high-${component}`).trim(), 10);
+            const getLowColor = (component) => parseInt(styles.getPropertyValue(`--noise-low-${component}`).trim(), 10) / 255;
+            const getHighColor = (component) => parseInt(styles.getPropertyValue(`--noise-high-${component}`).trim(), 10) / 255;
 
-            const newLowR = getLowColor('r');
-            const newLowG = getLowColor('g');
-            const newLowB = getLowColor('b');
-            const newHighR = getHighColor('r');
-            const newHighG = getHighColor('g');
-            const newHighB = getHighColor('b');
-
-            // Обновляем только если цвета изменились
-            if (newLowR !== noiseLowR || newLowG !== noiseLowG || newLowB !== noiseLowB ||
-                newHighR !== noiseHighR || newHighG !== noiseHighG || newHighB !== noiseHighB) {
-
-                noiseLowR = newLowR;
-                noiseLowG = newLowG;
-                noiseLowB = newLowB;
-                noiseHighR = newHighR;
-                noiseHighG = newHighG;
-                noiseHighB = newHighB;
-            }
+            lowColor = [getLowColor('r'), getLowColor('g'), getLowColor('b')];
+            highColor = [getHighColor('r'), getHighColor('g'), getHighColor('b')];
         } catch (error) {
-            console.debug('Используем цвета по умолчанию для шума');
-            // Значения по умолчанию уже установлены выше
+            // Используем цвета по умолчанию при ошибке
         }
 
         colorsNeedUpdate = false;
     }
 
-    // Генерация кадра шума
-    function generateFrame(zOffset) {
+    // Отрисовка кадра
+    function render() {
         if (colorsNeedUpdate) {
             updateColors();
         }
 
-        const data = imageData.data;
+        gl.useProgram(program);
 
-        for (let y = 0; y < scaledHeight; y++) {
-            for (let x = 0; x < scaledWidth; x++) {
-                const i = (y * scaledWidth + x) * 4;
+        // Настройка атрибута вершин
+        gl.enableVertexAttribArray(locations.position);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(locations.position, 2, gl.FLOAT, false, 0, 0);
 
-                // Нормализованные координаты для шума
-                const nx = x / scaledWidth * w * config.noiseScale;
-                const ny = y / scaledHeight * h * config.noiseScale;
+        // Установка униформ
+        gl.uniform2f(locations.resolution, canvas.width, canvas.height);
+        gl.uniform1f(locations.time, frame * config.noiseSpeed);
+        gl.uniform3fv(locations.lowColor, lowColor);
+        gl.uniform3fv(locations.highColor, highColor);
+        gl.uniform1f(locations.noiseScale, config.noiseScale * 100);
+        gl.uniform1i(locations.octaves, config.octaves);
+        gl.uniform1f(locations.lacunarity, config.lacunarity);
+        gl.uniform1f(locations.persistence, config.persistence);
 
-                // Значение шума
-                const noiseValue = Perlin.fbm(
-                    nx, ny, zOffset,
-                    config.octaves, config.lacunarity, config.persistence
-                );
-
-                // Нелинейное преобразование для контрастности
-                const brightness = Math.pow(noiseValue, 1.5);
-
-                // Интерполяция между цветами
-                data[i] = Math.round(noiseLowR + brightness * (noiseHighR - noiseLowR));
-                data[i + 1] = Math.round(noiseLowG + brightness * (noiseHighG - noiseLowG));
-                data[i + 2] = Math.round(noiseLowB + brightness * (noiseHighB - noiseLowB));
-                data[i + 3] = 255;
-            }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
+        // Отрисовка
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
-    // Анимационный цикл с контролем частоты кадров
+    // Анимационный цикл
     function animate(timestamp) {
+        // Первая отрисовка
         if (!lastFrameTime) {
             lastFrameTime = timestamp;
+            render();
+            frame++;
+            requestAnimationFrame(animate);
+            return;
         }
 
+        // Контроль FPS
         const frameInterval = 1000 / config.fps;
         const elapsed = timestamp - lastFrameTime;
 
         if (elapsed >= frameInterval) {
-            const zOffset = frame * config.noiseSpeed;
-            generateFrame(zOffset);
+            render();
             lastFrameTime = timestamp;
             frame++;
         }
@@ -220,29 +291,28 @@ export function initNoise() {
         requestAnimationFrame(animate);
     }
 
-    // Инициализация
-    function init() {
-        // Первоначальная настройка
+    // Запуск
+    (function init() {
         resize();
         updateColors();
 
-        // Обработчики событий
+        // Слушатели событий
         window.addEventListener('resize', () => {
             resize();
-            colorsNeedUpdate = true;
+            render(); // Немедленная перерисовка после изменения размера
         });
 
         const themeToggle = document.getElementById('theme-toggle-checkbox');
         if (themeToggle) {
             themeToggle.addEventListener('change', () => {
-                setTimeout(() => colorsNeedUpdate = true, 50);
+                setTimeout(() => {
+                    colorsNeedUpdate = true;
+                    render(); // Немедленная перерисовка после смены темы
+                }, 50);
             });
         }
 
         // Запуск анимации
         requestAnimationFrame(animate);
-    }
-
-    // Запуск
-    init();
+    })();
 } 

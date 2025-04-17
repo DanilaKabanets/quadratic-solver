@@ -69,12 +69,21 @@ function validateInput(input, errorElement, customValidation) {
 
 export function initUI() {
     // Обработчики клика по табам
-    calculatorTab.addEventListener('click', () => switchTab(calculatorTab, calculatorSection));
-    historyTab.addEventListener('click', () => {
+    calculatorTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab(calculatorTab, calculatorSection);
+    });
+
+    historyTab.addEventListener('click', (e) => {
+        e.preventDefault();
         switchTab(historyTab, historySection);
         renderHistory();
     });
-    tutorialTab.addEventListener('click', () => switchTab(tutorialTab, tutorialSection));
+
+    tutorialTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab(tutorialTab, tutorialSection);
+    });
 
     // Обработчики событий для валидации в реальном времени
     aInput.addEventListener('input', function () {
