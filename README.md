@@ -2,6 +2,14 @@
 
 Учебный проект для решения квадратных уравнений вида ax² + bx + c = 0.
 
+<img width="1651" alt="image" src="https://github.com/user-attachments/assets/ea3c95e0-f0f1-4365-8f68-d02110e6d671" />
+
+<img width="1651" alt="image" src="https://github.com/user-attachments/assets/280c0c17-76ab-4904-a1ea-e073691da258" />
+
+<img width="1651" alt="image" src="https://github.com/user-attachments/assets/a4ee30b3-cf7a-458c-ba04-012a14a0a7d4" />
+
+<img width="1651" alt="image" src="https://github.com/user-attachments/assets/efb1acc7-049a-433f-ad80-a41c55b32ee6" />
+
 ## Функциональность
 
 - Ввод коэффициентов a, b, c
