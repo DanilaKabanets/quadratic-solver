@@ -1,0 +1,174 @@
+:root {
+    /* ... другие переменные светлой темы ... */
+
+    /* Цвета для шума (Светлая тема - голубовато-белый) */
+    --noise-low-r: 255;
+    --noise-low-g: 255;
+    --noise-low-b: 255;
+    --noise-high-r: 0;
+    --noise-high-g: 155;
+    --noise-high-b: 255;
+}
+
+/* --- Тема Dracula для темного режима --- */
+[data-theme="dark"] {
+    /* Цветовая палитра Dracula */
+    --color-primary: #bd93f9;
+    /* Фиолетовый */
+    --color-primary-dark: #ff79c6;
+    /* Розовый для hover-эффектов */
+    --color-secondary: #ff5555;
+    /* Красный для кнопки сброса */
+    --color-secondary-dark: #6272a4;
+    /* Серо-голубой для неактивных элементов */
+    --color-text: #f8f8f2;
+    /* Белый текст */
+    --color-heading: #ff79c6;
+    /* Розовый для заголовков */
+    --color-error: #ff5555;
+    /* Красный для ошибок */
+    --color-bg: #282a36;
+    /* Основной фон */
+    --color-white: #44475a;
+    /* Фон карточек */
+    --color-light-gray: #383a59;
+    /* Более темный фон для элементов */
+    --color-border: #6272a4;
+    /* Границы */
+
+    /* Цвета для шума (Темная тема - серо-фиолетовый) */
+    --noise-low-r: 30;
+    --noise-low-g: 30;
+    --noise-low-b: 40;
+    --noise-high-r: 189;
+    --noise-high-g: 147;
+    --noise-high-b: 249;
+
+    /* Тени для темного режима */
+    --shadow-default: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Стили для темной темы (переопределения) --- */
+
+[data-theme="dark"] .tab.active {
+    background-color: transparent;
+}
+
+[data-theme="dark"] input {
+    background-color: #383a59;
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 5px rgba(189, 147, 249, 0.5);
+}
+
+[data-theme="dark"] input:invalid {
+    border-color: var(--color-error);
+    box-shadow: 0 0 5px rgba(255, 85, 85, 0.3);
+}
+
+[data-theme="dark"] #reset-btn,
+[data-theme="dark"] #clear-history {
+    background-color: var(--color-secondary-dark);
+}
+
+[data-theme="dark"] #reset-btn:hover,
+[data-theme="dark"] #clear-history:hover {
+    background-color: var(--color-secondary);
+}
+
+/* Групповые стили для темной темы (фон) */
+[data-theme="dark"] #result,
+/* Блок результатов */
+[data-theme="dark"] .card-block,
+/* Общий блок-карточка */
+[data-theme="dark"] .history-item,
+/* Элемент истории */
+[data-theme="dark"] .example,
+/* Пример в теории */
+[data-theme="dark"] #graph-container
+
+/* Контейнер графика */
+    {
+    background-color: var(--color-light-gray);
+}
+
+/* Групповые стили для темной темы (левая граница) */
+[data-theme="dark"] #result,
+/* Используем основной цвет для границы результатов */
+[data-theme="dark"] .left-border,
+[data-theme="dark"] .step,
+[data-theme="dark"] .history-item,
+[data-theme="dark"] .example,
+[data-theme="dark"] .formula {
+    border-left-color: var(--color-primary);
+}
+
+/* Стилизация формул для темной темы (дополнительно) */
+[data-theme="dark"] .formula {
+    background-color: #313442;
+    color: var(--color-text);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Переключатель темы --- */
+.theme-switcher {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.theme-icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.theme-toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.theme-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-secondary);
+    transition: .4s;
+    border-radius: 30px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--color-primary);
+}
+
+input:checked+.slider:before {
+    transform: translateX(30px);
+}

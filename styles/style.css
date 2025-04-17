@@ -1,31 +1,5 @@
-:root {
-    /* Цветовая палитра */
-    --color-primary: #3498db;
-    --color-primary-dark: #2980b9;
-    --color-secondary: #95a5a6;
-    --color-secondary-dark: #7f8c8d;
-    --color-text: #333;
-    --color-heading: #2c3e50;
-    --color-error: #e74c3c;
-    --color-bg: #f5f5f5;
-    --color-white: #fff;
-    --color-light-gray: #f9f9f9;
-    --color-border: #ddd;
-
-    /* Отступы */
-    --spacing-xs: 5px;
-    --spacing-sm: 10px;
-    --spacing-md: 15px;
-    --spacing-lg: 20px;
-    --spacing-xl: 30px;
-
-    /* Радиусы */
-    --radius-sm: 5px;
-    --radius-md: 10px;
-
-    /* Тени */
-    --shadow-default: 0 0 20px rgba(0, 0, 0, 0.1);
-}
+@import url('variables.css');
+@import url('themes.css');
 
 * {
     margin: 0;
@@ -42,6 +16,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .container {
@@ -52,6 +27,9 @@ body {
     border-radius: var(--radius-md);
     padding: var(--spacing-xl);
     box-shadow: var(--shadow-default);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    z-index: 1;
 }
 
 /* Типографика */
@@ -61,6 +39,7 @@ h3,
 h4 {
     color: var(--color-heading);
     margin-bottom: var(--spacing-md);
+    transition: color 0.3s;
 }
 
 h1 {
@@ -83,37 +62,72 @@ header {
 /* Табы */
 .tabs {
     display: flex;
-    margin-bottom: var(--spacing-lg);
-    border-bottom: 2px solid var(--color-border);
+    margin-bottom: var(--spacing-xl);
+    border-bottom: 1px solid var(--color-border);
+    gap: var(--spacing-md);
+    justify-content: center;
 }
 
 .tab {
-    padding: var(--spacing-sm) var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-md);
     background: none;
     border: none;
-    font-size: 1em;
+    font-size: 0.95em;
     cursor: pointer;
-    color: var(--color-secondary-dark);
-    transition: all 0.3s ease;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+    position: relative;
+    text-align: center;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+.tab::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
 }
 
 .tab.active {
     color: var(--color-primary);
-    border-bottom: 2px solid var(--color-primary);
-    margin-bottom: -2px;
+    opacity: 1;
+    background-color: transparent;
+}
+
+.tab.active::after {
+    transform: scaleX(1);
 }
 
 .tab:hover {
-    background-color: var(--color-primary-dark);
-    color: var(--color-white);
+    color: var(--color-primary);
+    background-color: transparent;
+    opacity: 1;
+}
+
+.tab:hover::not(.active)::after {
+    transform: scaleX(0.5);
 }
 
 .tab-content {
     display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .tab-content.active {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Форма */
@@ -131,13 +145,16 @@ label {
     font-weight: bold;
 }
 
+/* Инпуты */
 input {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     font-size: 1em;
-    transition: border-color 0.3s;
+    transition: all 0.3s ease;
+    background-color: var(--color-white);
+    color: var(--color-text);
 }
 
 input:focus {
@@ -171,7 +188,7 @@ button {
     border-radius: var(--radius-sm);
     font-size: 1em;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
     flex: 1;
 }
 
@@ -179,11 +196,13 @@ button:hover {
     background-color: var(--color-primary-dark);
 }
 
-#reset-btn {
+#reset-btn,
+#clear-history {
     background-color: var(--color-secondary);
 }
 
-#reset-btn:hover {
+#reset-btn:hover,
+#clear-history:hover {
     background-color: var(--color-secondary-dark);
 }
 
@@ -345,7 +364,7 @@ footer {
     font-size: 0.9em;
 }
 
-/* Адаптивность */
+/* --- Адаптивность --- */
 @media (max-width: 768px) {
     body {
         padding: var(--spacing-sm);
