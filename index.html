@@ -6,14 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Решение квадратных уравнений</title>
     <link rel="stylesheet" href="./styles/style.css" />
-    <link rel="stylesheet" href="./styles/noise.css" />
     <!-- Подключаем библиотеку для графиков -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Подключаем иконки -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
 <body>
+<<<<<<< Updated upstream
+=======
+    <!-- Селектор типа шума -->
+    <div class="noise-selector">
+        <select id="noise-type-selector">
+            <option value="perlin">Шум Перлина</option>
+            <option value="organic">Органический шум</option>
+        </select>
+    </div>
+
     <!-- Переключатель темы -->
     <div class="theme-switcher">
         <span class="theme-icon">
@@ -25,14 +32,15 @@
         </label>
     </div>
 
+>>>>>>> Stashed changes
     <div class="container">
         <header>
             <h1>Решение квадратных уравнений</h1>
             <p class="equation-form">ax² + bx + c = 0</p>
             <nav class="tabs">
-                <a href="#calculator-section" id="calculator-tab" class="tab active">Калькулятор</a>
-                <a href="#history-section" id="history-tab" class="tab">История</a>
-                <a href="#tutorial-section" id="tutorial-tab" class="tab">Теория</a>
+                <button id="calculator-tab" class="tab active">Калькулятор</button>
+                <button id="history-tab" class="tab">История</button>
+                <button id="tutorial-tab" class="tab">Теория</button>
             </nav>
         </header>
 
@@ -115,7 +123,7 @@
                     <h3>Что такое квадратное уравнение?</h3>
                     <p>
                         Квадратное уравнение — это уравнение вида ax² + bx + c = 0, где a,
-                        b, c — некоторые числа.
+                        b, c — некоторые числа, причём a ≠ 0.
                     </p>
 
                     <h3>Алгоритм решения</h3>
@@ -168,7 +176,7 @@
     </main>
     </div>
 
-    <script type="module" src="./scripts/main.js"></script>
+    <script src="./scripts/script.js"></script>
 </body>
 
 </html>

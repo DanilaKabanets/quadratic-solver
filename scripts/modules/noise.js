@@ -1,17 +1,36 @@
 /**
- * Шум Перлина через WebGL для фонового эффекта облаков
+ * Шум для фонового эффекта с поддержкой двух типов: 
+ * - Шум Перлина
+ * - Органический шум с domain warping
  */
 export function initNoise() {
     // Конфигурация
     const config = {
-        renderScale: 0.1,     // Масштаб рендеринга
-        noiseScale: 0.1,   // Масштаб узора шума
-        noiseSpeed: 0.02,    // Скорость анимации
-        octaves: 3,           // Количество октав шума
-        lacunarity: 1.0,      // Множитель частоты для октав
-        persistence: 0.5,     // Множитель амплитуды для октав
-        fps: 60               // Целевая частота кадров
+        // Общие настройки
+        renderScale: 1,        // Масштаб рендеринга
+        fps: 60,               // Целевая частота кадров
+
+        // Настройки шума Перлина
+        noiseScale: 0.2,         // Масштаб узора шума Перлина
+        noiseSpeed: 0.0,      // Скорость анимации шума Перлина
+        octaves: 3,            // Количество октав шума Перлина
+        lacunarity: 1.0,       // Множитель частоты для октав (Перлин)
+        persistence: 0.5,      // Множитель амплитуды для октав (Перлин)
+
+        // Настройки органического шума с domain warping
+        organicSpeed: 0.008,     // Скорость анимации органического шума
+        organicScale: 1.0,     // Масштаб органического шума
+        organicDetail: 1.8,    // Детализация органического шума
+        organicContrast: 1.8,  // Контраст органического шума
+        organicDistortion: 1.2, // Сила искажения (завихрения) в органическом шуме
+        organicColorIntensity: 0.9 // Интенсивность цветов органического шума
     };
+
+    // Текущий тип шума
+    let noiseType = 'perlin';
+
+    // Текущая тема
+    let isDarkTheme = document.body.classList.contains('dark-theme');
 
     // Создаем canvas если его нет
     let canvas = document.getElementById('noise-canvas');
@@ -56,12 +75,32 @@ export function initNoise() {
         uniform int u_octaves;
         uniform float u_lacunarity;
         uniform float u_persistence;
+        uniform int u_noiseType;     // 0 - Perlin, 1 - Organic
+        uniform float u_organicSpeed;
+        uniform float u_organicScale;
+        uniform float u_organicDetail;
+        uniform float u_organicContrast;
+        uniform float u_organicDistortion;
+        uniform float u_organicColorIntensity;
+        uniform bool u_isDarkTheme;  // Текущая тема
+        
+        // Функция для плавного смешивания цветов палитры
+        vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
+            return a + b * cos(6.28318 * (c * t + d));
+        }
         
         // Хэширование
         vec3 hash33(vec3 p) {
             p = fract(p * vec3(443.8975, 397.2973, 491.1871));
             p += dot(p, p.yxz + 19.19);
             return fract((p.xxy + p.yxx) * p.zyx);
+        }
+        
+        // Простая хэш-функция
+        float hash(vec2 p) {
+            p = fract(p * vec2(123.34, 456.21));
+            p += dot(p, p + 45.32);
+            return fract(p.x * p.y);
         }
         
         // Интерполяция
@@ -114,24 +153,147 @@ export function initNoise() {
                 if (i >= octaves) break;
                 
                 total += noise(p * frequency) * amplitude;
-                maxValue += amplitude;
-                
-                frequency *= lacunarity;
-                amplitude *= persistence;
+            maxValue += amplitude;
+
+            frequency *= lacunarity;
+            amplitude *= persistence;
+        }
+
+        return total / maxValue;
+    }
+        
+        //----------------------------------------
+        // Органический шум - Domain Warping по схеме f(p) = fbm(p+fbm(p+fbm(p)))
+        //----------------------------------------
+        
+        // 2D шум на основе хэша (быстрее, чем трехмерный шум)
+        float noise2D(in vec2 x) {
+            vec2 p = floor(x);
+            vec2 f = fract(x);
+            f = f * f * (3.0 - 2.0 * f);
+            
+            float n = p.x + p.y * 57.0;
+            float a = hash(p);
+            float b = hash(p + vec2(1.0, 0.0));
+            float c = hash(p + vec2(0.0, 1.0));
+            float d = hash(p + vec2(1.0, 1.0));
+            
+            return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        }
+        
+        // Базовый FBM для 2D (используется для domain warping)
+        float fbm2D(in vec2 p) {
+            float sum = 0.0;
+            float amp = 1.0;
+            float freq = 1.0;
+            const int octaves = 4; // Фиксированное число октав для базового fbm
+            
+            for(int i = 0; i < octaves; i++) {
+                sum += amp * noise2D(p * freq);
+                amp *= 0.5;
+                freq *= 2.0;
             }
             
-            return total / maxValue;
+            return sum;
+        }
+        
+        // Функция domain warping для органического шума по схеме f(p) = fbm(p+fbm(p+fbm(p)))
+        float domainWarpFbm(vec2 p) {
+            // Применяем масштабирование и скорость анимации
+            p = p * u_organicScale;
+            p += u_time * u_organicSpeed;
+            
+            // Первый уровень искажения (innermost fbm)
+            float innerFbm = fbm2D(p * 1.1);
+            
+            // Второй уровень искажения с применением первого
+            vec2 q = p + u_organicDistortion * vec2(innerFbm, innerFbm * 0.8);
+            float middleFbm = fbm2D(q * u_organicDetail);
+            
+            // Итоговый fbm с двойным искажением
+            vec2 r = p + u_organicDistortion * 2.0 * vec2(middleFbm, middleFbm * 0.9);
+            float finalFbm = fbm2D(r);
+            
+            // Применяем контраст
+            finalFbm = pow(finalFbm, u_organicContrast);
+            
+            return finalFbm;
         }
         
         void main() {
             vec2 uv = gl_FragCoord.xy / u_resolution;
-            vec3 p = vec3(uv * u_noiseScale, u_time);
             
-            float n = fbm(p, u_octaves, u_lacunarity, u_persistence);
-            n = pow(n, 1.5);
-            
-            vec3 color = mix(u_lowColor, u_highColor, n);
-            gl_FragColor = vec4(color, 1.0);
+            if (u_noiseType == 0) {
+                // Обычный шум Перлина - используем цвета из CSS
+                vec3 p = vec3(uv * u_noiseScale, u_time);
+                float n = fbm(p, u_octaves, u_lacunarity, u_persistence);
+                n = pow(n, 1.5);
+                vec3 color = mix(u_lowColor, u_highColor, n);
+                gl_FragColor = vec4(color, 1.0);
+            } 
+            else {
+                // Органический шум с domain warping
+                vec2 q = (2.0 * gl_FragCoord.xy - u_resolution) / min(u_resolution.x, u_resolution.y);
+                
+                // Получаем значение шума с domain warping
+                float noise = domainWarpFbm(q);
+                
+                // Параметры для создания палитры на основе цветов темы
+                vec3 baseColor, ampColor, freqColor, phaseColor;
+                vec3 accentColor1, accentColor2;
+                float accentIntensity1, accentIntensity2;
+                
+                if (u_isDarkTheme) {
+                    // Темная тема - используем u_lowColor как базовый и u_highColor как акцент
+                    baseColor = u_lowColor * 0.5;                     // Приглушенный базовый цвет
+                    ampColor = vec3(0.8, 0.7, 0.9) * u_organicColorIntensity; // Амплитуда
+                    freqColor = vec3(0.7, 0.8, 0.5);                  // Частота
+                    phaseColor = vec3(0.0, 0.2, 0.4);                // Фаза
+                    
+                    // Акценты на основе u_highColor
+                    accentColor1 = u_highColor * 1.2;                 // Усиленный яркий акцент
+                    accentColor2 = vec3(
+                        u_lowColor.g * 0.7, 
+                        u_lowColor.b * 1.3, 
+                        u_highColor.r * 0.8
+                    );  // Контрастный акцент
+                    
+                    accentIntensity1 = 0.7;
+                    accentIntensity2 = 0.3;
+                } else {
+                    // Светлая тема - используем u_highColor как базовый и u_lowColor как акцент
+                    baseColor = mix(u_highColor, vec3(0.9, 0.9, 0.8), 0.3); // Светлый базовый с теплым оттенком
+                    ampColor = vec3(0.4, 0.4, 0.3) * u_organicColorIntensity; // Амплитуда
+                    freqColor = vec3(0.8, 0.7, 0.6);                  // Частота
+                    phaseColor = vec3(0.4, 0.3, 0.2);                // Фаза
+                    
+                    // Акценты на основе u_lowColor
+                    accentColor1 = mix(u_lowColor, vec3(1.0, 0.8, 0.5), 0.3); // Теплый акцент
+                    accentColor2 = mix(u_highColor, vec3(0.2, 0.5, 0.8), 0.5); // Холодный акцент
+                    
+                    accentIntensity1 = 0.5;
+                    accentIntensity2 = 0.25;
+                }
+                
+                // Создаем базовый цвет с помощью палитры на основе цветов темы
+                vec3 color = palette(
+                    noise, 
+                    baseColor,
+                    ampColor,
+                    freqColor,
+                    phaseColor
+                );
+                
+                // Добавляем первый акцент (яркий/теплый)
+                float accent1 = smoothstep(0.6, 0.8, noise);
+                color = mix(color, accentColor1, accent1 * accentIntensity1 * u_organicColorIntensity);
+                
+                // Добавляем второй акцент (контрастный/холодный)
+                float accent2 = smoothstep(0.3, 0.5, sin(noise * 7.0));
+                color = mix(color, accentColor2, accent2 * accentIntensity2 * u_organicColorIntensity);
+                
+                gl_FragColor = vec4(color, 1.0);
+            }
         }
     `;
 
@@ -186,7 +348,15 @@ export function initNoise() {
         noiseScale: gl.getUniformLocation(program, 'u_noiseScale'),
         octaves: gl.getUniformLocation(program, 'u_octaves'),
         lacunarity: gl.getUniformLocation(program, 'u_lacunarity'),
-        persistence: gl.getUniformLocation(program, 'u_persistence')
+        persistence: gl.getUniformLocation(program, 'u_persistence'),
+        noiseType: gl.getUniformLocation(program, 'u_noiseType'),
+        organicSpeed: gl.getUniformLocation(program, 'u_organicSpeed'),
+        organicScale: gl.getUniformLocation(program, 'u_organicScale'),
+        organicDetail: gl.getUniformLocation(program, 'u_organicDetail'),
+        organicContrast: gl.getUniformLocation(program, 'u_organicContrast'),
+        organicDistortion: gl.getUniformLocation(program, 'u_organicDistortion'),
+        organicColorIntensity: gl.getUniformLocation(program, 'u_organicColorIntensity'),
+        isDarkTheme: gl.getUniformLocation(program, 'u_isDarkTheme')
     };
 
     // Создание буфера вершин
@@ -210,6 +380,12 @@ export function initNoise() {
     let lowColor = [180 / 255, 210 / 255, 230 / 255];
     let highColor = [1.0, 1.0, 1.0];
     let colorsNeedUpdate = true;
+
+    // Переключение типа шума
+    function setNoiseType(type) {
+        noiseType = type;
+        render(); // Немедленная перерисовка
+    }
 
     // Обработка изменения размера
     function resize() {
@@ -253,6 +429,9 @@ export function initNoise() {
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.vertexAttribPointer(locations.position, 2, gl.FLOAT, false, 0, 0);
 
+        // Обновляем флаг темной темы
+        isDarkTheme = document.body.classList.contains('dark-theme');
+
         // Установка униформ
         gl.uniform2f(locations.resolution, canvas.width, canvas.height);
         gl.uniform1f(locations.time, frame * config.noiseSpeed);
@@ -262,6 +441,19 @@ export function initNoise() {
         gl.uniform1i(locations.octaves, config.octaves);
         gl.uniform1f(locations.lacunarity, config.lacunarity);
         gl.uniform1f(locations.persistence, config.persistence);
+
+        // Тип шума: 0 - Perlin, 1 - Organic
+        let noiseTypeValue = 0;
+        if (noiseType === 'organic') noiseTypeValue = 1;
+
+        gl.uniform1i(locations.noiseType, noiseTypeValue);
+        gl.uniform1f(locations.organicSpeed, config.organicSpeed);
+        gl.uniform1f(locations.organicScale, config.organicScale);
+        gl.uniform1f(locations.organicDetail, config.organicDetail);
+        gl.uniform1f(locations.organicContrast, config.organicContrast);
+        gl.uniform1f(locations.organicDistortion, config.organicDistortion);
+        gl.uniform1f(locations.organicColorIntensity, config.organicColorIntensity);
+        gl.uniform1i(locations.isDarkTheme, isDarkTheme ? 1 : 0);
 
         // Отрисовка
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -312,7 +504,58 @@ export function initNoise() {
             });
         }
 
+        // Настройка переключателя типа шума
+        const noiseSelector = document.getElementById('noise-type-selector');
+        if (noiseSelector) {
+            noiseSelector.addEventListener('change', (e) => {
+                setNoiseType(e.target.value);
+            });
+        }
+
         // Запуск анимации
         requestAnimationFrame(animate);
     })();
+
+    // Возвращаем API для внешнего управления
+    return {
+        setNoiseType,
+
+        // Методы для управления параметрами органического шума
+        setOrganicScale: (value) => {
+            config.organicScale = value;
+            render();
+        },
+        setOrganicDetail: (value) => {
+            config.organicDetail = value;
+            render();
+        },
+        setOrganicContrast: (value) => {
+            config.organicContrast = value;
+            render();
+        },
+        setOrganicDistortion: (value) => {
+            config.organicDistortion = value;
+            render();
+        },
+        setOrganicSpeed: (value) => {
+            config.organicSpeed = value;
+            render();
+        },
+        setOrganicColorIntensity: (value) => {
+            config.organicColorIntensity = value;
+            render();
+        },
+
+        // Получение текущих настроек
+        getOrganicSettings: () => {
+            return {
+                scale: config.organicScale,
+                detail: config.organicDetail,
+                contrast: config.organicContrast,
+                distortion: config.organicDistortion,
+                speed: config.organicSpeed,
+                colorIntensity: config.organicColorIntensity
+            };
+        }
+    };
 } 
