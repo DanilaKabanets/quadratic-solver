@@ -28,6 +28,8 @@ body {
     padding: var(--spacing-xl);
     box-shadow: var(--shadow-default);
     transition: background-color 0.3s, box-shadow 0.3s;
+    position: relative;
+    z-index: 1;
 }
 
 /* Типографика */
