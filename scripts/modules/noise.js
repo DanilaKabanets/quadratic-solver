@@ -12,7 +12,7 @@ export function initNoise() {
 
         // Настройки шума Перлина
         noiseScale: 0.2,         // Масштаб узора шума Перлина
-        noiseSpeed: 0.0,      // Скорость анимации шума Перлина
+        noiseSpeed: 0.005,      // Скорость анимации шума Перлина
         octaves: 3,            // Количество октав шума Перлина
         lacunarity: 1.0,       // Множитель частоты для октав (Перлин)
         persistence: 0.5,      // Множитель амплитуды для октав (Перлин)
@@ -434,7 +434,7 @@ export function initNoise() {
 
         // Установка униформ
         gl.uniform2f(locations.resolution, canvas.width, canvas.height);
-        gl.uniform1f(locations.time, frame * config.noiseSpeed);
+        gl.uniform1f(locations.time, frame * 0.01);
         gl.uniform3fv(locations.lowColor, lowColor);
         gl.uniform3fv(locations.highColor, highColor);
         gl.uniform1f(locations.noiseScale, config.noiseScale * 100);
